@@ -1,2 +1,4 @@
 */venv/
-order_event_queue/*
+order_event_queue/config
+order_event_queue/mnesia
+order_event_queue/schema
