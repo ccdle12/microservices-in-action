@@ -1,0 +1,97 @@
+version: '3'
+services:
+  api_gateway:
+    build: ./api_gateway
+    restart: always
+    volumes:
+      # mounts the folder.
+      - ./api_gateway:/api_gateway
+
+      # mounts the folder, but is empty.
+      - /api_gateway/venv/
+
+    container_name: api_gateway
+    environment:
+      - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
+    ports:
+    - $API_GATEWAY_PORT:$API_GATEWAY_PORT
+    networks:
+      - simplebank
+
+  order_service:
+    build: ./order_service
+    restart: always
+    volumes:
+      # mounts the folder.
+      - ./order_service:/order_service
+
+      # mounts the folder, but is empty.
+      - /order_service/venv/
+
+    container_name: order_service
+    environment:
+      - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
+      - DB_USER=$ORDER_DB_USER
+      - DB_PASSWORD=$ORDER_DB_PASSWORD
+      - DB_NAME=$ORDER_DB_NAME
+      - DB_PORT=$ORDER_DB_PORT
+      - ORDER_EQ_USER=$ORDER_EQ_USER
+      - ORDER_EQ_PASSWORD=$ORDER_EQ_PASSWORD
+      - ORDER_EQ_PORT=$ORDER_EQ_PORT
+    ports:
+    - $ORDER_SERVICE_PORT
+    networks:
+      - simplebank
+
+  order_db:
+    build: ./order_db
+    restart: always
+    environment:
+      - POSTGRES_DB=$ORDER_DB_NAME
+      - POSTGRES_USER=$ORDER_DB_USER
+      - POSTGRES_PASSWORD=$ORDER_DB_PASSWORD
+    container_name: order_db
+    ports:
+    - $ORDER_DB_PORT
+    networks:
+      - simplebank
+
+  order_event_queue:
+    image: rabbitmq:3-management
+    restart: always
+    container_name: order_event_queue
+    ports:
+    - $ORDER_EQ_ADMINER_PORT:$ORDER_EQ_ADMINER_PORT
+    volumes:
+      - ./order_event_queue:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=cluster_cookie
+      - RABBITMQ_DEFAULT_USER=$ORDER_EQ_USER
+      - RABBITMQ_DEFAULT_PASS=$ORDER_EQ_PASSWORD
+    networks:
+     - simplebank
+
+  market_service:
+    build: ./market_service
+    restart: always
+    volumes:
+      - ./market_service:/market_service
+    environment:
+      - ORDER_EQ_USER=$ORDER_EQ_USER
+      - ORDER_EQ_PASSWORD=$ORDER_EQ_PASSWORD
+      - ORDER_EQ_PORT=$ORDER_EQ_PORT
+    container_name: market_service
+    networks:
+      - simplebank
+
+  fees_service:
+    build: ./fees_service
+    restart: always
+    volumes:
+      - ./fees_service:/go/src/github.com/simplebank/fees_service/
+    container_name: fees_service
+    networks:
+      - simplebank
+
+networks:
+  simplebank:
