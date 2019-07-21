@@ -13,6 +13,12 @@ services:
     - $API_GATEWAY_PORT:$API_GATEWAY_PORT
     networks:
       - simplebank
+    depends_on:
+        - "logstash"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "tcp://127.0.0.1:25826"
 
   fees_service:
     container_name: fees_service
@@ -86,6 +92,49 @@ services:
       - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
     expose:
     - $ORDER_SERVICE_PORT
+    networks:
+      - simplebank
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.2
+    ports:
+      - "9200:9200"
+    environment:
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - simplebank
+    
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.2.2
+    ports:
+      - "5601:5601"
+    environment:
+      - "xpack.security.enabled=false"
+    depends_on:
+      - "elasticsearch"
+    networks:
+      - simplebank
+    
+  logstash:
+    image: docker.elastic.co/logstash/logstash:5.2.2
+    ports:
+      - "25826:25826"
+    volumes:
+      - $PWD/elk-config:/elk-config
+    command: logstash -f /elk-config/logstash.config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - "elasticsearch"
     networks:
       - simplebank
 
