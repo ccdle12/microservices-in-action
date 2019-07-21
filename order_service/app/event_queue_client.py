@@ -1,3 +1,8 @@
+"""
+Event Queue Client allows the order_service to emit events
+to the order_event_queue.
+"""
+
 import pika
 import uuid
 import os
