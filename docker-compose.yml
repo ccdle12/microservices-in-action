@@ -5,7 +5,7 @@ services:
     build: ./api_gateway
     restart: always
     volumes:
-      - ./api_gateway:/api_gateway # mounts the folder.
+      - ./api_gateway:/api_gateway
       - /api_gateway/venv/         # mounts as an empty folder.
     environment:
       - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
@@ -69,7 +69,7 @@ services:
     build: ./order_service
     restart: always
     volumes:
-      - ./order_service:/order_service # mounts the folder.
+      - ./order_service:/order_service
       - /order_service/venv/           # mounts as an empty folder.
     environment:
       - DB_NAME=$ORDER_DB_NAME
