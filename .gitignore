@@ -2,3 +2,6 @@
 order_event_queue/config
 order_event_queue/mnesia
 order_event_queue/schema
+*/__pycache__/
+*/*/__pycache__/
+*/*.pyc
