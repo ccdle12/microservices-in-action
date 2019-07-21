@@ -1,3 +1,7 @@
+"""
+Market Service listens to order_created events, and then
+places the orders on the market.
+"""
 import pika
 import time
 import os
@@ -7,10 +11,10 @@ credentials = pika.PlainCredentials(
     os.environ['ORDER_EQ_PASSWORD']
 )
 params = pika.ConnectionParameters(
-        host='order_event_queue',
-        port=os.environ['ORDER_EQ_PORT'],
-        virtual_host='/',
-        credentials=credentials
+    host='order_event_queue',
+    port=os.environ['ORDER_EQ_PORT'],
+    virtual_host='/',
+    credentials=credentials
 )
 connection = pika.BlockingConnection(params)
 channel = connection.channel()
@@ -49,9 +53,9 @@ def on_request(ch, method, props, body):
 def publish_to_fee_service(msg):
     """ Publishes a message to the fee_service_queue """
     channel.basic_publish(
-            exchange='',
-            routing_key='order_placed',
-            body=msg
+        exchange='',
+        routing_key='order_placed',
+        body=msg
     )
 
 # Listen on the `order_created` for messages for the market service.

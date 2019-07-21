@@ -1,3 +1,6 @@
+"""Entry point for the Flask App."""
+
+
 from flask import Flask
 import os
 
