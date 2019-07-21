@@ -1,6 +1,8 @@
+"""Configuration file for the Flask based App."""
+
 import os
 
-class Config(object):
+class Config():
     ENV = 'production'
     DEBUG = False
     TESTING = False

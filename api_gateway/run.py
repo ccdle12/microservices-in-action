@@ -1,3 +1,5 @@
+"""Entry Point for the api_gatway, serves a Flask API."""
+
 from app import app
 
 app.config.from_object('config.DevelopmentConfig')
