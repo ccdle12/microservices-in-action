@@ -22,6 +22,8 @@ services:
       - ./fees_service:/go/src/github.com/simplebank/fees_service/
     networks:
       - simplebank
+    depends_on:
+      - order_event_queue
 
   market_service:
     container_name: market_service
@@ -35,6 +37,8 @@ services:
       - ORDER_EQ_USER=$ORDER_EQ_USER
     networks:
       - simplebank
+    depends_on:
+      - order_event_queue
 
   order_db:
     container_name: order_db
