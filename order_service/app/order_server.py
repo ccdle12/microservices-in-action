@@ -49,7 +49,7 @@ class OrderServer(order_service_pb2_grpc.OrderServicer):
             response = place_order.call(str(request))
         except:
             return order_service_pb2.OrderResponse(
-                status=utils.tx_status(int(response))
+                status=utils.tx_status(2)
             )
 
         # Update the status of the order in the DB.
