@@ -13,12 +13,6 @@ services:
     - $API_GATEWAY_PORT:$API_GATEWAY_PORT
     networks:
       - simplebank
-    depends_on:
-        - "logstash"
-    logging:
-      driver: syslog
-      options:
-        syslog-address: "tcp://127.0.0.1:25826"
 
   fees_service:
     container_name: fees_service
@@ -96,22 +90,20 @@ services:
       - simplebank
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.2
-    ports:
-      - "9200:9200"
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+    expose:
+      - "9200"
+      - "9300"
     environment:
       - "xpack.security.enabled=false"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
     networks:
       - simplebank
-    
+
   kibana:
-    image: docker.elastic.co/kibana/kibana:5.2.2
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:6.7.0
     ports:
       - "5601:5601"
     environment:
@@ -120,21 +112,31 @@ services:
       - "elasticsearch"
     networks:
       - simplebank
-    
+
   logstash:
+    container_name: logstash
     image: docker.elastic.co/logstash/logstash:5.2.2
-    ports:
-      - "25826:25826"
+    expose:
+      - "25826"
     volumes:
-      - $PWD/elk-config:/elk-config
-    command: logstash -f /elk-config/logstash.config
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - $PWD/logstash:/logstash
+    command: logstash -f /logstash/logstash.config
     depends_on:
       - "elasticsearch"
+    networks:
+      - simplebank
+
+  logspout:
+    container_name: logspout
+    image: gliderlabs/logspout:v3
+    command: "udp://logstash:25826"
+    restart: always
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock"
+    depends_on:
+       - elasticsearch
+       - logstash
+       - kibana
     networks:
       - simplebank
 
