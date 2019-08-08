@@ -40,10 +40,9 @@ class EventQueueClient(object):
 
         try:
             self._connection = pika.BlockingConnection(params)
+            self._channel = self._connection.channel()
         except pika.exceptions.ConnectionClosed:
             raise Exception()
-
-        self._channel = self._connection.channel()
 
         # This channel will use the order_placed queue to receive confirmation
         # of the order.
