@@ -15,6 +15,7 @@ from logger.log import logger
 
 @app.route('/order', methods=['POST'])
 def order():
+    print('DEBUG: POST ORDER')
     data = request.get_json()
 
     if 'amount' not in data:
@@ -25,7 +26,7 @@ def order():
 
     try:
         channel = grpc.insecure_channel(
-            'order_service:%s' % os.environ['ORDER_SERVICE_PORT']
+            'order_service:{}'.format(os.environ['ORDER_SERVICE_PORT'])
         )
         stub = order_service_pb2_grpc.OrderStub(channel)
         response = stub.CreateOrder(
@@ -35,6 +36,7 @@ def order():
                 amount=data['amount']
             )
         )
+        # print('[*] DEBUG')
 
         if 'FAILED' == response.status:
             logger.error('error in order request: {}'.format(str(response.status)))
@@ -43,13 +45,17 @@ def order():
             logger.info('response to order request: {}'.format(str(response.status)))
             return jsonify({'message': str(response.status)})
 
-    except:
+        logger.info('response to order request: {}'.format(str(response.status)))
+        return jsonify({'message': 'hello'})
+    except Exception as error:
         logger.error('error in api_gateway, order service is unresponsive')
         return jsonify({'message': 'order_service unavailable'}), 500
+        # return jsonify({'message': str(error)}), 500
 
 @app.route('/order', methods=['GET'])
 def all_orders():
     # Utils?
+    print('DEBUG: GET ALL ORDERS')
     def deserialize_orders(order):
         order_dict = {}
         order_dict['order_id'] = order.order_id
@@ -61,7 +67,9 @@ def all_orders():
         return order_dict
 
     try:
-        channel = grpc.insecure_channel('order_service:%s' % os.environ['ORDER_SERVICE_PORT'])
+        channel = grpc.insecure_channel(
+            'order_service:{}'.format(os.environ['ORDER_SERVICE_PORT'])
+        )
         stub = order_service_pb2_grpc.OrderStub(channel)
         response = stub.GetAllOrders(
             order_service_pb2.OrderStatusAllRequest()
