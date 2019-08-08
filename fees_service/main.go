@@ -1,8 +1,8 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
-	"log"
 )
 
 func main() {
@@ -14,18 +14,19 @@ func main() {
 	defer conn.Close()
 
 	// Opens a channel to the event queue.
-	ch, err := conn.Channel()
+	event_queue_channel, err := conn.Channel()
 	if err != nil {
 		log.Fatalf("Failed to create channel.")
 	}
 
-	// Creates a channel to receive notifications from the event queue closing
-	// it's connection/going offline.
+	// Creates a channel to receive closing notifications from the event queue.
+	// This means the notify channel will receive a message when the connection
+	// to the event queue has been lost.
 	notify := conn.NotifyClose(make(chan *amqp.Error)) // error channel
 
-	// Creates a Queue for the fees_service_queue, the fees_service will receive
-	// messages from the event_queue when an order is confirmed.
-	q, err := ch.QueueDeclare(
+	// Creates a queue `order_placed`, the fees_service will receive
+	// messages from the event_queue when an order is placed on the market.
+	order_placed_queue, err := event_queue_channel.QueueDeclare(
 		// "fees_service_queue", // Queue name.
 		"order_placed", // Queue name.
 		false,          // durable
@@ -38,30 +39,32 @@ func main() {
 		log.Fatalf("Failed to declare queue.")
 	}
 
-	// Consumes and listens to the queue. `msgs` is a *amqp.Delivery channel.
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    //args
+	// Consumes and listens to the queue.
+	// `order_placed_msgs` is a *amqp.Delivery channel.
+	order_placed_msgs, err := event_queue_channel.Consume(
+		order_placed_queue.Name, // queue
+		"",                      // consumer
+		true,                    // auto-ack
+		false,                   // exclusive
+		false,                   // no-local
+		false,                   // no-wait
+		nil,                     //args
 	)
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	logger.Info(" [*] Waiting for messages. To exit press CTRL+C")
 	// Blocking loop, waits for messages from the channels.
 	for {
 		select {
 		case <-notify:
 			log.Printf(" [*] Reconnecting to event queue")
 			// NOTE: THIS IS A HACK
-			// When an unresponsive message from the event queue. This will panic
-			// and cause the container to restart. This is a bit dirty since we
-			// shoudn't rely on the container restarting to enable reconnection.
+			// When receiveing an unresponsive message from the event queue.
+			// This will panic and cause the container to restart. This is a
+			// bit dirty since we shoudn't rely on the container restarting to
+			// enable reconnection.
 			panic("Notified that the event queue is unreponsive.")
-		case msg := <-msgs:
-			log.Printf(" [*] Received message: %s", msg)
+		case msg := <-order_placed_msgs:
+			logger.Info("Received order placed messages: %s", msg)
 		}
 	}
 }
