@@ -5,3 +5,7 @@ order_event_queue/schema
 */__pycache__/
 */*/__pycache__/
 */*.pyc
+TODO.md
+*.swp
+*/logFile.txt
+*/tmp/
