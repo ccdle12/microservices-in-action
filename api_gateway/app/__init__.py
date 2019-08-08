@@ -8,5 +8,6 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 from app import routes
-from app import order_service_pb2
-from app import order_service_pb2_grpc
+from app import logger
+from app.grpc import order_service_pb2
+from app.grpc import order_service_pb2_grpc

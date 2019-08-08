@@ -2,16 +2,12 @@
 
 
 from app import app
+from app.grpc import order_service_pb2, order_service_pb2_grpc
+from app.logger.log import logger
 from flask import jsonify, request
 import uuid
 import os
 import grpc
-from app.grpc import order_service_pb2, order_service_pb2_grpc
-
-import sys
-
-sys.path.append('..')
-from logger.log import logger
 
 
 @app.route('/order', methods=['POST'])
