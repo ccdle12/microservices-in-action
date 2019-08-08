@@ -3,7 +3,6 @@
 --
 
 DROP TABLE IF EXISTS "order";
-
 CREATE TABLE "order" (
   order_id text UNIQUE NOT NULL,
   user_id text,
