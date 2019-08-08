@@ -23,11 +23,6 @@ channel = connection.channel()
 # to send requests.
 channel.queue_declare(queue='order_created')
 
-def send_order(order):
-    # Sleep to simulate another RPC call to an exchange.
-    time.sleep(2)
-    return 1
-
 def on_request(ch, method, props, body):
     """
       on_request is the function called when receiving a request from the client
@@ -49,6 +44,10 @@ def on_request(ch, method, props, body):
                      body=str(response)
                      )
     ch.basic_ack(delivery_tag=method.delivery_tag)
+
+def send_order(order):
+    # Sleep to simulate another RPC call to an exchange.
+    return 1
 
 def publish_to_fee_service(msg):
     """ Publishes a message to the fee_service_queue """
