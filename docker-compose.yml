@@ -6,7 +6,7 @@ services:
     restart: always
     volumes:
       - ./api_gateway:/api_gateway
-      - /api_gateway/venv/         # mounts as an empty folder.
+      - /api_gateway/venv/ # mounts as an empty folder.
     environment:
       - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
     ports:
