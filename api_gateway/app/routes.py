@@ -75,6 +75,6 @@ def all_orders():
 
         logger.info('response to get all orders: {}'.format(str(response.orders)))
         return jsonify({'orders': [deserialize_orders(order) for order in response.orders]})
-    except:
-        logger.error('error in get orders request: {}'.format(str(response)))
+    except Exception as error:
+        logger.error('error in get orders request: {}'.format(str(error)))
         return jsonify({'message': 'order_service unavailable'}), 500
