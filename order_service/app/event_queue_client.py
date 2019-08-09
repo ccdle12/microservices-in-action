@@ -3,27 +3,28 @@ Event Queue Client allows the order_service to emit events
 to the order_event_queue.
 """
 
+
 import pika
 import uuid
 import os
 
-class EventQueueClient(object):
-    # Private Variables.
-    # The connection to the order_event_queue.
-    _connection = None
 
-    # Channel setup to the order_event_queue.
-    _channel = None
+class EventQueueClient(object):
+    # The connection to the order_event_queue.
+    connection = None
+
+    # Channel to the order_event_queue.
+    channel = None
 
     # The queue being used for the placement of orders.
-    _callback_queue = None
+    callback_queue = None
 
     # The unique id sent to the rpc_queue, this will identify the source of the
     # request for the server.
-    _corr_id = None
+    corr_id = None
 
     # The response from the server.
-    _response = None
+    response = None
 
     def __init__(self):
         credentials = pika.PlainCredentials(
@@ -39,20 +40,20 @@ class EventQueueClient(object):
         )
 
         try:
-            self._connection = pika.BlockingConnection(params)
-            self._channel = self._connection.channel()
+            self.connection = pika.BlockingConnection(params)
+            self.channel = self.connection.channel()
         except pika.exceptions.ConnectionClosed:
             raise Exception()
 
         # This channel will use the order_placed queue to receive confirmation
         # of the order.
-        result = self._channel.queue_declare(queue='order_placed')
-        self._callback_queue = result.method.queue
+        result = self.channel.queue_declare(queue='order_placed')
+        self.callback_queue = result.method.queue
 
         # Listen on the callback queue and execute `on_response` method when
         # a message is received on the callback queue.
-        self._channel.basic_consume(
-            queue=self._callback_queue,
+        self.channel.basic_consume(
+            queue=self.callback_queue,
             on_message_callback=self.on_response,
             auto_ack=True
         )
@@ -60,26 +61,26 @@ class EventQueueClient(object):
     def on_response(self, ch, method, props, body):
         # On response on the callback queue, it checks if the message
         # correlates with the clients request.
-        if self._corr_id == props.correlation_id:
-            self._response = body
-            self._connection.close()
+        if self.corr_id == props.correlation_id:
+            self.response = body
+            self.connection.close()
 
     def call(self, n):
-        self._corr_id = str(uuid.uuid4())
+        self.corr_id = str(uuid.uuid4())
 
-        self._channel.basic_publish(
+        self.channel.basic_publish(
             exchange='',
             routing_key='order_created',
             # correlation id is set to identify the sender.
             # reply_to is set to the anonymous callback queue.
             properties=pika.BasicProperties(
-                reply_to=self._callback_queue,
-                correlation_id=self._corr_id,
+                reply_to=self.callback_queue,
+                correlation_id=self.corr_id,
             ),
             body=str(n)
         )
 
-        while self._response is None:
-            self._connection.process_data_events()
+        while self.response is None:
+            self.connection.process_data_events()
 
-        return int(self._response)
+        return int(self.response)

@@ -3,7 +3,10 @@ Implementation of the gRPC Server, allows the api_gatway to place orders on
 the event_queue.
 """
 
-from app import order_service_pb2_grpc, order_service_pb2, models, db, utils
+
+from app import db, utils
+from app.grpc import order_service_pb2_grpc, order_service_pb2
+from app.models import order_model
 from app.event_queue_client import EventQueueClient
 from flask_sqlalchemy import SQLAlchemy
 import uuid
@@ -15,7 +18,7 @@ class OrderServer(order_service_pb2_grpc.OrderServicer):
     the market.
     """
     def GetAllOrders(self, request, context):
-        orders = models.Order.query.all()
+        orders = order_model.Order.query.all()
 
         def build_order_status(order):
             return order_service_pb2.OrderStatusResponse(
@@ -35,7 +38,7 @@ class OrderServer(order_service_pb2_grpc.OrderServicer):
         order_id=str(uuid.uuid4())
 
         # Create the order model.
-        new_order = models.Order(
+        new_order = order_model.Order(
             order_id=order_id,
             user_id="1",
             symbol=request.symbol.upper(),
