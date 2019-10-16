@@ -8,7 +8,7 @@ services:
       - ./api_gateway:/api_gateway
       - /api_gateway/venv/ # mounts as an empty folder.
     environment:
-      - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
+      - ORDERS_SERVICE_PORT=$ORDERS_SERVICE_PORT
     ports:
     - $API_GATEWAY_PORT:$API_GATEWAY_PORT
     networks:
@@ -68,24 +68,44 @@ services:
     networks:
      - simplebank
 
-  order_service:
-    container_name: order_service
-    build: ./order_service
+  # order_service:
+    # container_name: order_service
+    # build: ./order_service
+    # restart: always
+    # volumes:
+    #   - ./order_service:/order_service
+    #   - /order_service/venv/           # mounts as an empty folder.
+    # environment:
+    #   - DB_NAME=$ORDER_DB_NAME
+    #   - DB_PASSWORD=$ORDER_DB_PASSWORD
+    #   - DB_PORT=$ORDER_DB_PORT
+    #   - DB_USER=$ORDER_DB_USER
+    #   - ORDER_EQ_PASSWORD=$ORDER_EQ_PASSWORD
+    #   - ORDER_EQ_PORT=$ORDER_EQ_PORT
+    #   - ORDER_EQ_USER=$ORDER_EQ_USER
+    #   - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
+    # expose:
+    # - $ORDER_SERVICE_PORT
+    # networks:
+    #   - simplebank
+
+  orders_service:
+    container_name: orders_service
+    build: ./orders_service
     restart: always
     volumes:
-      - ./order_service:/order_service
-      - /order_service/venv/           # mounts as an empty folder.
+      - ./orders_service:/orders_service
     environment:
-      - DB_NAME=$ORDER_DB_NAME
-      - DB_PASSWORD=$ORDER_DB_PASSWORD
-      - DB_PORT=$ORDER_DB_PORT
-      - DB_USER=$ORDER_DB_USER
-      - ORDER_EQ_PASSWORD=$ORDER_EQ_PASSWORD
-      - ORDER_EQ_PORT=$ORDER_EQ_PORT
-      - ORDER_EQ_USER=$ORDER_EQ_USER
-      - ORDER_SERVICE_PORT=$ORDER_SERVICE_PORT
+      - DB_NAME=$ORDERS_DB_NAME
+      - DB_PASSWORD=$ORDERS_DB_PASSWORD
+      - DB_PORT=$ORDERS_DB_PORT
+      - DB_USER=$ORDERS_DB_USER
+      - ORDERS_EQ_PASSWORD=$ORDERS_EQ_PASSWORD
+      - ORDERS_EQ_PORT=$ORDERS_EQ_PORT
+      - ORDERS_EQ_USER=$ORDERS_EQ_USER
+      - ORDERS_SERVICE_PORT=$ORDERS_SERVICE_PORT
     expose:
-    - $ORDER_SERVICE_PORT
+      - $ORDERS_SERVICE_PORT
     networks:
       - simplebank
 
