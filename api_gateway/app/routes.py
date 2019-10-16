@@ -24,9 +24,17 @@ def order():
     try:
         # Maybe wrap this with a OrderServiceClient?
         channel = grpc.insecure_channel(
-            'order_service:{}'.format(os.environ['ORDER_SERVICE_PORT'])
+            'orders_service:{}'.format(os.environ['ORDERS_SERVICE_PORT'])
         )
+    except Exception as e:
+        return jsonify('error: {}'.format(str(e)))
+
+    try:
         stub = order_service_pb2_grpc.OrderStub(channel)
+    except Exception as e:
+        return jsonify('error: {}'.format(str(e)))
+
+    try:
         response = stub.CreateOrder(
             order_service_pb2.OrderRequest(
                 user_id="123",
@@ -49,6 +57,8 @@ def order():
         logger.error('error in api_gateway, order service is unresponsive')
         return jsonify({'message': 'order_service unavailable'}), 500
 
+    return jsonify({'result': 'placeholder'})
+
 @app.route('/order', methods=['GET'])
 def all_orders():
     # Utils?
@@ -66,7 +76,7 @@ def all_orders():
 
     try:
         channel = grpc.insecure_channel(
-            'order_service:{}'.format(os.environ['ORDER_SERVICE_PORT'])
+            'orders_service:{}'.format(os.environ['ORDERS_SERVICE_PORT'])
         )
         stub = order_service_pb2_grpc.OrderStub(channel)
         response = stub.GetAllOrders(
