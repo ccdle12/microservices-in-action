@@ -41,13 +41,15 @@ def order():
 
     try:
         response = stub.CreateOrder(
-            order_service_pb2.OrderRequest(
+            timeout=5,
+            request=order_service_pb2.OrderRequest(
                 user_id="123",
                 symbol=req['symbol'].upper(),
                 amount=req['amount']
             )
         )
 
+        logger.info(f"Received response from grpc orders_service: {response}")
         if 'FAILED' == response.status:
             logger.error('error in order request: {}'.format(str(response.status)))
             return jsonify({'error': str(response.status)}), 500
