@@ -12,14 +12,19 @@ import grpc
 
 @app.route('/order', methods=['POST'])
 def order():
+    # Request should be:
+    # {"symbol": "...", "order_size": "...", "price": "..."}
     print('DEBUG: POST ORDER')
     req = request.get_json()
     # TODO (ccdle12) use flask Rest Plus to validate.
     if 'amount' not in req:
-        return jsonify({'message': 'amount is missing in request'}), 404
+        return jsonify({'message': 'order_size is missing in request'}), 404
 
     if 'symbol' not in req:
         return jsonify({'message': 'symbol is missing in request'}), 404
+
+    if 'price' not in req:
+        return jsonify({'message': 'price is missing in request'}), 404
 
     try:
         # Maybe wrap this with a OrderServiceClient?
@@ -53,8 +58,9 @@ def order():
         logger.info('response to order request: {}'.format(str(response.status)))
         return jsonify({'message': 'hello'})
 
-    except Exception as error:
-        logger.error('error in api_gateway, order service is unresponsive')
+    except Exception as e:
+        # logger.error('error in api_gateway, order service is unresponsive')
+        logger.error(e)
         return jsonify({'message': 'order_service unavailable'}), 500
 
     return jsonify({'result': 'placeholder'})
