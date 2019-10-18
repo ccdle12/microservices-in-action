@@ -1,7 +1,7 @@
 package gatewaygrpc
 
 import (
-	// "github.com/simplebank/orders_service/eventqueue"
+	"errors"
 	proto "github.com/simplebank/orders_service/grpc"
 	"golang.org/x/net/context"
 	"testing"
@@ -18,6 +18,17 @@ func (e *EventQueueMock) ProcessMessage() error {
 	return nil
 }
 
+// Failed Mock for the EventQueue interface when creating a Server.
+type FailedEventQueueMock struct{}
+
+func (f *FailedEventQueueMock) SendMessage(msg []byte) error {
+	return QueueSendMsgError
+}
+
+func (f *FailedEventQueueMock) ProcessMessage() error {
+	return errors.New("Mock failed process message")
+}
+
 // Tests passing Nil into a Server as the interfacec QueueClient should
 // NOT crash the grpc server.
 func TestNilQueueClient(t *testing.T) {
@@ -32,16 +43,16 @@ func TestNilQueueClient(t *testing.T) {
 	}
 }
 
-// Tests that we can use a mock for the EventQueue when creating the server.
-func TestQueueClientMock(t *testing.T) {
-	eventQueue := &EventQueueMock{}
+// Test that the raised error should have been a QueueSendMsgError.
+func TestQueueSendMsgError(t *testing.T) {
+	eventQueue := &FailedEventQueueMock{}
 	server := Server{eventQueue}
 
 	ctx := context.Background()
 	order_req := &proto.OrderRequest{UserId: "123", Symbol: "BTC", Amount: 123}
 
 	_, err := server.CreateOrder(ctx, order_req)
-	if err != nil {
-		t.Errorf("No error should have been raised, the event queue is mocked.")
+	if err != QueueSendMsgError {
+		t.Errorf("Error raised should have been a QueueSendMsgError: receive: %v", err)
 	}
 }
