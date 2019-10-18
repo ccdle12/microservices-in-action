@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	QueueClientNilError = errors.New("QueueClient is nil.")
+	QueueClientNilError = errors.New("QueueClient is nil")
+	QueueSendMsgError   = errors.New("Failed to send message to queue")
 )
 
 // Server is the implementation struct for the proto file describing the endpoints
@@ -26,10 +27,15 @@ func (s *Server) CreateOrder(ctx context.Context, req *proto.OrderRequest) (*pro
 
 	// 1. Write the order to the DB.
 	//  - Fail return the user it has failed.
-	s.QueueClient.SendMessage([]byte("Hello"))
 
 	// 2. Send a message to the order event queue as a order has been received.
-	// 3. Respond the the user that everything was ok.
+	err := s.QueueClient.SendMessage([]byte("Hello"))
+	if err != nil {
+		// TODO(ccdle12): Log the internal technical error.
+		return nil, err
+	}
+
+	// 3. Respond to the the user that everything was ok.
 	return &proto.OrderResponse{Status: "Order Placed"}, nil
 }
 
