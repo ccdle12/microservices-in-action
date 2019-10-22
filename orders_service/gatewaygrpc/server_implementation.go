@@ -2,8 +2,10 @@ package gatewaygrpc
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"github.com/simplebank/orders_service/eventqueue"
 	proto "github.com/simplebank/orders_service/grpc"
+	"github.com/simplebank/orders_service/models"
 	"golang.org/x/net/context"
 )
 
@@ -51,4 +53,19 @@ func (s *Server) GetAllOrders(context.Context, *proto.OrderStatusAllRequest) (*p
 	allResponses := []*proto.OrderStatusResponse{orderStatusResponse}
 
 	return &proto.OrderStatusAllResponse{Orders: allResponses}, nil
+}
+
+// OrderReqToClientOrder is a hacky... temporary solution to convert a
+// proto.OrderRequest to a models.ClientOrder. The reason for the function
+// being here is that neither object should really know about each other in a
+// concrete sense. I would prefer a more elegant solution in the future.
+// Equivalent to a Rust::From trait.
+func OrderReqToClientOrder(order_req *proto.OrderRequest) *models.ClientOrder {
+	orderId := uuid.NewRandom()
+	return &models.ClientOrder{
+		Id:        uuid.NewRandom(),
+		Symbol:    order_req.Symbol,
+		OrderSize: order_req.OrderSize,
+		Price:     order_req.Price,
+	}
 }

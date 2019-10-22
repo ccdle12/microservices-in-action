@@ -6,7 +6,8 @@ import (
 
 type ClientOrder struct {
 	gorm.Model
-	UserId string
-	Symbol string
-	Amount string
+	Id        string
+	Symbol    string
+	OrderSize string
+	Price     string
 }

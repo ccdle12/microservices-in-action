@@ -3,13 +3,13 @@ syntax = "proto3";
 message OrderRequest {
     string user_id = 1;
     string symbol = 2;
-    int32 amount = 3;
+    string order_size = 3;
+    string price = 4;
 }
 
 message OrderResponse {
     string status = 1;
 }
-
 
 message OrderStatusResponse {
     string order_id = 1;

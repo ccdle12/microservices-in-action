@@ -22,31 +22,31 @@ services:
     networks:
       - simplebank
 
-  fees_service:
-    container_name: fees_service
-    build: ./fees_service
-    restart: always
-    volumes:
-      - ./fees_service:/go/src/github.com/simplebank/fees_service/
-    networks:
-      - simplebank
-    depends_on:
-      - order_event_queue
+  # fees_service:
+    # container_name: fees_service
+    # build: ./fees_service
+    # restart: always
+    # volumes:
+    #   - ./fees_service:/go/src/github.com/simplebank/fees_service/
+    # networks:
+    #   - simplebank
+    # depends_on:
+    #   - order_event_queue
 
-  market_service:
-    container_name: market_service
-    build: ./market_service
-    restart: always
-    volumes:
-      - ./market_service:/market_service
-    environment:
-      - ORDER_EQ_PASSWORD=$ORDER_EQ_PASSWORD
-      - ORDER_EQ_PORT=$ORDER_EQ_PORT
-      - ORDER_EQ_USER=$ORDER_EQ_USER
-    networks:
-      - simplebank
-    depends_on:
-      - order_event_queue
+  # market_service:
+    # container_name: market_service
+    # build: ./market_service
+    # restart: always
+    # volumes:
+    #   - ./market_service:/market_service
+    # environment:
+    #   - ORDER_EQ_PASSWORD=$ORDER_EQ_PASSWORD
+    #   - ORDER_EQ_PORT=$ORDER_EQ_PORT
+    #   - ORDER_EQ_USER=$ORDER_EQ_USER
+    # networks:
+    #   - simplebank
+    # depends_on:
+    #   - order_event_queue
 
   order_db:
     container_name: order_db
@@ -81,7 +81,7 @@ services:
     build: ./orders_service
     restart: always
     volumes:
-      - ./orders_service:/orders_service
+      - ./orders_service:/go/src/github.com/simplebank/orders_service
     environment:
       - DB_NAME=$ORDERS_DB_NAME
       - DB_PASSWORD=$ORDERS_DB_PASSWORD
@@ -96,56 +96,56 @@ services:
     networks:
       - simplebank
 
-  elasticsearch:
-    container_name: elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.0
-    expose:
-      - "9200"
-      - "9300"
-    environment:
-      - "xpack.security.enabled=false"
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    networks:
-      - simplebank
+  # elasticsearch:
+    # container_name: elasticsearch
+    # image: docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+    # expose:
+    #   - "9200"
+    #   - "9300"
+    # environment:
+    #   - "xpack.security.enabled=false"
+    #   - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    # networks:
+    #   - simplebank
 
-  kibana:
-    container_name: kibana
-    image: docker.elastic.co/kibana/kibana:6.7.0
-    ports:
-      - "5601:5601"
-    environment:
-      - "xpack.security.enabled=false"
-    depends_on:
-      - "elasticsearch"
-    networks:
-      - simplebank
+  # kibana:
+    # container_name: kibana
+    # image: docker.elastic.co/kibana/kibana:6.7.0
+    # ports:
+    #   - "5601:5601"
+    # environment:
+    #   - "xpack.security.enabled=false"
+    # depends_on:
+    #   - "elasticsearch"
+    # networks:
+    #   - simplebank
 
-  logstash:
-    container_name: logstash
-    image: docker.elastic.co/logstash/logstash:5.2.2
-    expose:
-      - "25826"
-    volumes:
-      - $PWD/logstash:/logstash
-    command: logstash -f /logstash/logstash.config
-    depends_on:
-      - "elasticsearch"
-    networks:
-      - simplebank
+  # logstash:
+    # container_name: logstash
+    # image: docker.elastic.co/logstash/logstash:5.2.2
+    # expose:
+    #   - "25826"
+    # volumes:
+    #   - $PWD/logstash:/logstash
+    # command: logstash -f /logstash/logstash.config
+    # depends_on:
+    #   - "elasticsearch"
+    # networks:
+    #   - simplebank
 
-  logspout:
-    container_name: logspout
-    image: gliderlabs/logspout:v3
-    command: "udp://logstash:25826"
-    restart: always
-    volumes:
-      - "/var/run/docker.sock:/tmp/docker.sock"
-    depends_on:
-       - elasticsearch
-       - logstash
-       - kibana
-    networks:
-      - simplebank
+  # logspout:
+    # container_name: logspout
+    # image: gliderlabs/logspout:v3
+    # command: "udp://logstash:25826"
+    # restart: always
+    # volumes:
+    #   - "/var/run/docker.sock:/tmp/docker.sock"
+    # depends_on:
+    #    - elasticsearch
+    #    - logstash
+    #    - kibana
+    # networks:
+    #   - simplebank
 
 networks:
   simplebank:
