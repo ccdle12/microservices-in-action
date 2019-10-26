@@ -20,20 +20,22 @@ func (e *EventQueueMock) ProcessMessage() error {
 	return nil
 }
 
-// Tests passing Nil into a Server as the interfacec QueueClient should
-// NOT crash the grpc server.
-func TestNilQueueClient(t *testing.T) {
-	server := Server{nil}
-
-	ctx := context.Background()
-	order_req := &proto.OrderRequest{
+var (
+	orderReq = &proto.OrderRequest{
 		UserId:    "123",
 		Symbol:    "BTC",
 		OrderSize: "123",
 		Price:     "123",
 	}
+)
 
-	_, err := server.CreateOrder(ctx, order_req)
+// Tests passing Nil into a Server as the interfacec QueueClient should
+// NOT crash the grpc server.
+func TestNilQueueClient(t *testing.T) {
+	server := Server{nil}
+	ctx := context.Background()
+
+	_, err := server.CreateOrder(ctx, orderReq)
 	if err != QueueClientNilError {
 		t.Errorf("QueueClientNilError should have been raised.")
 	}
@@ -41,23 +43,19 @@ func TestNilQueueClient(t *testing.T) {
 
 // Tests that we can convert a proto object to json.
 func TestOrderRequsetToClientOrder(t *testing.T) {
-	order_req := &proto.OrderRequest{
-		UserId:    "123",
-		Symbol:    "BTC",
-		OrderSize: "123",
-		Price:     "123",
+	client_order, err := OrderReqToClientOrder(orderReq)
+	if err != nil {
+		t.Errorf("Received error: %v", err)
 	}
-	client_order := OrderReqToClientOrder(order_req)
 
 	// Test that all of the field values in client_order match the order_req.
 	var testCases = []struct {
 		input    string
 		expected string
 	}{
-		{client_order.Id, order_req.UserId},
-		{client_order.Symbol, order_req.Symbol},
-		{client_order.OrderSize, order_req.OrderSize},
-		{client_order.Price, order_req.Price},
+		{client_order.Symbol, orderReq.Symbol},
+		{client_order.OrderSize, orderReq.OrderSize},
+		{client_order.Price, orderReq.Price},
 	}
 
 	for _, test := range testCases {
@@ -71,13 +69,10 @@ func TestOrderRequsetToClientOrder(t *testing.T) {
 
 // Tests that the server implementation can write a ClientOrder to the DB.
 func TestWriteClientOrder(t *testing.T) {
-	orderReq := &proto.OrderRequest{
-		UserId:    "123",
-		Symbol:    "BTC",
-		OrderSize: "123",
-		Price:     "123",
+	clientOrder, err := OrderReqToClientOrder(orderReq)
+	if err != nil {
+		t.Errorf("Failed to convert order req to client order: %v", err)
 	}
-	clientOrder := OrderReqToClientOrder(orderReq)
 
 	// TODO(ccdle12): move this to a dbclient?
 	dbURI := fmt.Sprintf("host=order_db user=order_db dbname=order_db sslmode=disable password=some_password")
@@ -87,8 +82,8 @@ func TestWriteClientOrder(t *testing.T) {
 	}
 	defer db.Close()
 
-	// db.NewRecord(clientOrder)
-	db.AutoMigrate(&clientOrder)
 	db.Create(&clientOrder)
-	// db.Save(&clientOrder)
+	if record := db.NewRecord(clientOrder); record {
+		t.Errorf("Failed to create the client order since it's primary key is blank")
+	}
 }
