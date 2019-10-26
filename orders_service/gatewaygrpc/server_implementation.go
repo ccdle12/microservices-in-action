@@ -60,12 +60,16 @@ func (s *Server) GetAllOrders(context.Context, *proto.OrderStatusAllRequest) (*p
 // being here is that neither object should really know about each other in a
 // concrete sense. I would prefer a more elegant solution in the future.
 // Equivalent to a Rust::From trait.
-func OrderReqToClientOrder(order_req *proto.OrderRequest) *models.ClientOrder {
-	orderId := uuid.NewRandom()
+func OrderReqToClientOrder(order_req *proto.OrderRequest) (*models.ClientOrder, error) {
+	orderId, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.ClientOrder{
-		Id:        uuid.NewRandom(),
+		Id:        orderId,
 		Symbol:    order_req.Symbol,
 		OrderSize: order_req.OrderSize,
 		Price:     order_req.Price,
-	}
+	}, nil
 }
